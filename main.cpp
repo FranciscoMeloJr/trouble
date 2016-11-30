@@ -54,7 +54,7 @@ public:
 };
 
 //Abstract class workload:
-class AbstractWorlkload {
+class AbstractWorkload {
 public:
   virtual void AbstractSlow() = 0; // Pure virtual function makes
                                              // this class Abstract class.
@@ -62,12 +62,11 @@ public:
 
 };
 
-//Test read data
-class ReadData : public AbstractWorlkload
+//Test read data - cache misses
+class ReadData : public AbstractWorkload
 {
 
     ReadData(){
-
     }
 
     void AbstractSlow(){
@@ -110,7 +109,43 @@ class ReadData : public AbstractWorlkload
 };
 
 //Test instructions
-class Instructions : public AbstractWorlkload
+class Instructions : public AbstractWorkload
+{
+    void AbstractSlow(){
+        this->factorial(1000);
+    }
+
+    void AbstractFast(){
+        this->factorial(10);
+    }
+
+    static int factorial(int n)
+    {
+      return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+    }
+
+};
+
+//Test page faults
+class PageFaults : public AbstractWorkload
+{
+    void AbstractSlow(){
+        this->factorial(1000);
+    }
+
+    void AbstractFast(){
+        this->factorial(10);
+    }
+
+    static int factorial(int n)
+    {
+      return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+    }
+
+};
+
+//Test CPU
+class CPU : public AbstractWorkload
 {
     void AbstractSlow(){
         this->factorial(1000);
