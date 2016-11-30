@@ -51,13 +51,83 @@ public:
       return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
     }
 
-    //http://computing.dcu.ie/~humphrys/Notes/Neural/chaos.html
-    static double sinoide_example(double x){
+};
 
-        return sin((1/x)*(1/(1-x)));
+//Abstract class workload:
+class AbstractWorlkload {
+public:
+  virtual void AbstractSlow() = 0; // Pure virtual function makes
+                                             // this class Abstract class.
+  virtual void AbstractFast() = 0; // Virtual function.
+
+};
+
+//Test read data
+class ReadData : public AbstractWorlkload
+{
+
+    ReadData(){
+
+    }
+
+    void AbstractSlow(){
+        int sz = 100000*5;
+        QVector<int> idx_rnd(sz); // 100 000 * sizeof(int) = 400 kio, L1 32kio, LLC 4mb
+        QVector<int> idx_lin(sz);
+        QVector<int> buf_small(10);
+        QVector<int> buf_large(sz);
+        for (int i = 0; i < sz; i++) {
+            idx_rnd[i] = i;
+            idx_lin[i] = i;
+        }
+        this->read_data(buf_large, idx_rnd);
+    }
+
+    void AbstractFast(){
+
+        int sz = 100000*5;
+        QVector<int> idx_rnd(sz); // 100 000 * sizeof(int) = 400 kio, L1 32kio, LLC 4mb
+        QVector<int> idx_lin(sz);
+        QVector<int> buf_large(sz);
+        QVector<int> buf_small(10);
+        for (int i = 0; i < sz; i++) {
+            idx_rnd[i] = i;
+            idx_lin[i] = i;
+        }
+        this->read_data(buf_large, idx_rnd);
+    }
+
+
+    static void read_data(QVector<int> &v, QVector<int> &idx)
+    {
+        volatile int b = 0;
+        (void) b;
+        int size = idx.size();
+        for (int i = 0; i < (1 << 20); i++) {
+            b = v[idx[i % size] % v.size()];
+        }
     }
 };
 
+//Test instructions
+class Instructions : public AbstractWorlkload
+{
+    void AbstractSlow(){
+        this->factorial(1000);
+    }
+
+    void AbstractFast(){
+        this->factorial(10);
+    }
+
+    static int factorial(int n)
+    {
+      return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+    }
+
+};
+
+//Sample
 class Sample {
 public:
     bool slow;
@@ -71,6 +141,24 @@ public:
     }
 };
 
+//Class responsable for writing in file
+class Writer{
+
+    void write(QVector<Sample> samples){
+        QFile file("troubleSample.csv");
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            for (const Sample &s: samples) {
+                out << s.slow << "," << s.delta << "," << s.inst << "," << s.cpu << "," << s.miss << "\n";
+            }
+            file.close();
+        }
+    }
+
+};
+
+
+//Main:
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
@@ -134,7 +222,7 @@ int main(int argc, char *argv[])
 
         } else {
 //            Tests::read_data(buf_small, idx_lin);
-          Tests::factorial(3);
+            Tests::factorial(3);
         }
 
 //        do_compute(work[i % work.size()] * scale);
