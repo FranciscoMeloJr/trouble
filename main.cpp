@@ -179,7 +179,8 @@ public:
 //Class responsable for writing in file
 class Writer{
 
-    void write(QVector<Sample> samples){
+    public:
+        void write(QVector<Sample> samples){
         QFile file("troubleSample.csv");
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&file);
@@ -191,7 +192,6 @@ class Writer{
     }
 
 };
-
 
 //Main:
 int main(int argc, char *argv[])
@@ -281,15 +281,9 @@ int main(int argc, char *argv[])
         qDebug() << s;
     }
 
-    //write the csv:
-    QFile file("troubleSample.csv");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        for (const Sample &s: samples) {
-            out << s.slow << "," << s.delta << "," << s.inst << "," << s.cpu << "," << s.miss << "\n";
-        }
-        file.close();
-    }
+    //Writer:
+    Writer* wr = new Writer();
+    wr->write(samples);
 
     tracepoint(cct, getinfo, 2, 2, "context");
 
