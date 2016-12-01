@@ -56,20 +56,17 @@ public:
 //Abstract class workload:
 class AbstractWorkload {
 public:
-  virtual void AbstractSlow() = 0; // Pure virtual function makes
+  virtual void Slow() = 0; // Pure virtual function makes
                                              // this class Abstract class.
-  virtual void AbstractFast() = 0; // Virtual function.
+  virtual void Fast() = 0; // Virtual function.
 
 };
 
 //Test read data - cache misses
 class ReadData : public AbstractWorkload
 {
-
-    ReadData(){
-    }
-
-    void AbstractSlow(){
+public:
+    void Slow(){
         int sz = 100000*5;
         QVector<int> idx_rnd(sz); // 100 000 * sizeof(int) = 400 kio, L1 32kio, LLC 4mb
         QVector<int> idx_lin(sz);
@@ -82,7 +79,7 @@ class ReadData : public AbstractWorkload
         this->read_data(buf_large, idx_rnd);
     }
 
-    void AbstractFast(){
+    void Fast(){
 
         int sz = 100000*5;
         QVector<int> idx_rnd(sz); // 100 000 * sizeof(int) = 400 kio, L1 32kio, LLC 4mb
@@ -111,11 +108,11 @@ class ReadData : public AbstractWorkload
 //Test instructions
 class Instructions : public AbstractWorkload
 {
-    void AbstractSlow(){
+    void Slow(){
         this->factorial(1000);
     }
 
-    void AbstractFast(){
+    void Fast(){
         this->factorial(10);
     }
 
@@ -129,11 +126,11 @@ class Instructions : public AbstractWorkload
 //Test page faults
 class PageFaults : public AbstractWorkload
 {
-    void AbstractSlow(){
+    void Slow(){
         this->factorial(1000);
     }
 
-    void AbstractFast(){
+    void Fast(){
         this->factorial(10);
     }
 
@@ -147,11 +144,11 @@ class PageFaults : public AbstractWorkload
 //Test CPU
 class CPU : public AbstractWorkload
 {
-    void AbstractSlow(){
+    void Slow(){
         this->factorial(1000);
     }
 
-    void AbstractFast(){
+    void Fast(){
         this->factorial(10);
     }
 
@@ -191,6 +188,18 @@ class Writer{
         }
     }
 
+};
+
+//Class responsable for writing in file
+class Debug{
+    public:
+        void debug(QVector<Sample> samples, int n){
+            //run through all of them:
+            for (int i = 0; i < n; i++) {
+                Sample s = samples[i];
+                qDebug() << s;
+            }
+    }
 };
 
 //Main:
@@ -275,11 +284,12 @@ int main(int argc, char *argv[])
 
     }
 
-    //run through all of them:
-    for (int i = 0; i < n; i++) {
-        Sample s = samples[i];
-        qDebug() << s;
-    }
+    ReadData* rd = new ReadData();
+    rd->Fast();
+
+    //Debug:
+    Debug* db = new Debug();
+    db->debug(samples, n);
 
     //Writer:
     Writer* wr = new Writer();
